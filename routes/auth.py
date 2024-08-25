@@ -1,6 +1,7 @@
 import uuid
 
 import bcrypt
+import jwt
 from fastapi import Depends, HTTPException, APIRouter
 from sqlalchemy.orm import Session
 
@@ -30,6 +31,7 @@ def signup(user: UserCreate, db: Session = Depends(get_db)):
 
     return user_db
 
+
 @router.post("/login")
 def login(user: UserLogin, db: Session = Depends(get_db)):
     user_db = db.query(User).filter(User.email == user.email).first()
@@ -42,4 +44,6 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
     if not is_match:
         raise HTTPException(401, "Wrong password!")
 
-    return user_db
+    token = jwt.encode({"id": user_db.id}, "password_key")
+
+    return {"token": token, "user": user_db}
